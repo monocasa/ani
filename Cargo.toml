@@ -2,3 +2,7 @@
 name = "ani"
 version = "0.1.0"
 authors = ["monocasa"]
+
+[dependencies]
+getopts = "0.2.14"
+
