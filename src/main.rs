@@ -4,6 +4,8 @@ pub mod mips;
 
 use getopts::Options;
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 enum ParseError {
 	Help,
 	Ver,
@@ -120,7 +122,7 @@ fn on_parse_err(err: ParseError, program_name: &str) {
 		},
 
 		ParseError::Ver => {
-			println!("ani multi-system emulator");
+			println!("ani multi-system emulator {}", VERSION);
 			println!("Copyrgiht 2015-2016 Tristan Miller");
 			println!("This program is free software; you may redistribute it under the terms of");
 			println!("the GNU General Public License version 3 or (at your option) any later version.");
