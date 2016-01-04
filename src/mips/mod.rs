@@ -23,11 +23,11 @@ impl Platform for Sys161Platform {
 	}
 
 	fn get_usage(&self) -> &'static str {
-		"KERNEL"
+		"CONFIG_FILE KERNEL"
 	}
 
 	fn initialize_machine(&self, args: &Vec<String>) -> Result<Box<Machine>, MachineError> {
-		if args.len() != 1 {
+		if args.len() != 2 {
 			return Err(MachineError::InvalidArgs);
 		}
 		let machine = Box::<Sys161Machine>::new(Default::default());
