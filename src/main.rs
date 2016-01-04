@@ -79,22 +79,24 @@ fn parse_options(args: &Vec<String>, opts: &mut Options) -> ParseResult {
 	opts.optflag("H", "help",    "Display this information");
 	opts.optflag("v", "version", "Display the version number of ani");
 
-	opts.optflagopt("p", "platform", "Target emulation platform ('?' to list)", "PLATFORM");
-
 	let matches = try!(opts.parse(&args[1..]));
+	let remainder = matches.free.clone();
 
-	if matches.opt_present("platform") {
-		let platform_name_string = matches.opt_str("platform").unwrap();
-		let platform_name = platform_name_string.as_ref();
-		ani_opts.platform = match platform_name {
-			"?" => return Err(ParseError::PrintPlatforms),
-			_   => {
-				match find_platform_by_name(platform_name) {
-					Some(ret_platform) => Some(ret_platform),
-					None => return Err(ParseError::UnknownArgument("platform", matches.opt_str("platform").unwrap())),
-				}
-			},
-		};
+	match matches.free.first() {
+		Some(platform_name) => {
+			ani_opts.platform = match platform_name.as_ref() {
+				"?" => return Err(ParseError::PrintPlatforms),
+				_   => {
+					match find_platform_by_name(platform_name) {
+						Some(ret_platform) => Some(ret_platform),
+						None => return Err(ParseError::UnknownArgument("PLATFORM", platform_name.clone())),
+					}
+				},
+			};
+		},
+		None => {
+			return Err(ParseError::NoPlatform);
+		},
 	}
 
 	if matches.opt_present("help") {
@@ -107,11 +109,11 @@ fn parse_options(args: &Vec<String>, opts: &mut Options) -> ParseResult {
 
 	try!(validate_options(&ani_opts));
 
-	Ok((matches.free.clone(), ani_opts))
+	Ok((remainder, ani_opts))
 }
 
 fn print_usage(program_name: &str) {
-	println!("Usage:  {} -p PLATFORM", program_name);
+	println!("Usage:  {} PLATFORM", program_name);
 }
 
 fn on_parse_err(err: ParseError, program_name: &str) {
@@ -168,7 +170,7 @@ fn on_machine_err(err: MachineError, program_name: &str, ani_opts: &AniOptions) 
 		},
 
 		MachineError::InvalidArgs => {
-			println!("ERROR: {} -p PLATFORM {}", program_name, ani_opts.platform.unwrap().get_usage());
+			println!("ERROR: {} PLATFORM {}", program_name, ani_opts.platform.unwrap().get_usage());
 			1
 		},
 	};
