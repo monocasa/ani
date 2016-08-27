@@ -83,6 +83,14 @@ fn parse_options(args: &Vec<String>, opts: &mut Options) -> ParseResult {
 	let matches = try!(opts.parse(&args[1..]));
 	let remainder = matches.free.clone();
 
+	if matches.opt_present("help") {
+		return Err(ParseError::Help);
+	}
+
+	if matches.opt_present("version") {
+		return Err(ParseError::Ver);
+	}
+
 	match matches.free.first() {
 		Some(platform_name) => {
 			ani_opts.platform = match platform_name.as_ref() {
@@ -98,14 +106,6 @@ fn parse_options(args: &Vec<String>, opts: &mut Options) -> ParseResult {
 		None => {
 			return Err(ParseError::NoPlatform);
 		},
-	}
-
-	if matches.opt_present("help") {
-		return Err(ParseError::Help);
-	}
-
-	if matches.opt_present("version") {
-		return Err(ParseError::Ver);
 	}
 
 	try!(validate_options(&ani_opts));
