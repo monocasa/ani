@@ -43,7 +43,8 @@ pub trait Platform {
 	fn initialize_machine(&self, args: &Vec<String>) -> Result<Box<Machine>, MachineError>;
 }
 
-const PLATFORMS: [&'static Platform; 1] = [
+const PLATFORMS: [&'static Platform; 2] = [
+	mips::MALTA_PLATFORM,
 	mips::SYS161_PLATFORM,
 ];
 
