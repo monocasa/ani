@@ -1,3 +1,4 @@
+extern crate ani_core;
 extern crate getopts;
 
 pub mod mips;
@@ -23,6 +24,7 @@ impl From<getopts::Fail> for ParseError {
 
 pub enum MachineError {
 	Io(std::io::Error),
+	AniCore(ani_core::Error),
 	InvalidArgs,
 }
 
@@ -32,8 +34,14 @@ impl From<std::io::Error> for MachineError {
 	}
 }
 
+impl From<ani_core::Error> for MachineError {
+	fn from(err: ani_core::Error) -> MachineError {
+		MachineError::AniCore(err)
+	}
+}
+
 pub trait Machine {
-	fn run(&self) -> Result<(), MachineError>;
+	fn run(&mut self) -> Result<(), MachineError>;
 }
 
 pub trait Platform {
@@ -170,6 +178,11 @@ fn on_machine_err(err: MachineError, program_name: &str, ani_opts: &AniOptions) 
 			1
 		},
 
+		MachineError::AniCore(err) => {
+			println!("ERROR: {:?}", err);
+			1
+		},
+
 		MachineError::InvalidArgs => {
 			println!("ERROR: {} PLATFORM {}", program_name, ani_opts.platform.unwrap().get_usage());
 			1
@@ -187,7 +200,7 @@ fn main() {
 
 	match parse_options(&args, &mut opts) {
 		Ok((remainder_opts, ani_opts)) => {
-			let machine = match ani_opts.platform.unwrap().initialize_machine(&remainder_opts) {
+			let mut machine = match ani_opts.platform.unwrap().initialize_machine(&remainder_opts) {
 				Ok(machine) => machine,
 				Err(err)    => {
 					on_machine_err(err, &program_name, &ani_opts);

@@ -1,10 +1,25 @@
 use super::{Machine, MachineError, Platform};
 
-#[derive(Default)]
-struct MaltaMachine;
+use ani_core::{Arch, CpuCookie, CPU_ENDIAN_BIG, mips, PROT_ALL, System};
+
+struct MaltaMachine {
+	system: System,
+	cpu: CpuCookie,
+}
+
+impl MaltaMachine {
+	fn new(system: System, cpu: CpuCookie) -> MaltaMachine {
+		MaltaMachine {
+			system: system,
+			cpu: cpu,
+		}
+	}
+}
 
 impl Machine for MaltaMachine {
-	fn run(&self) -> Result<(), MachineError> {
+	fn run(&mut self) -> Result<(), MachineError> {
+		let _ = try!(self.system.execute(&self.cpu));
+
 		Ok(())
 	}
 }
@@ -12,6 +27,9 @@ impl Machine for MaltaMachine {
 pub struct MaltaPlatform;
 
 pub const MALTA_PLATFORM: &'static MaltaPlatform = &MaltaPlatform;
+
+const MALTA_RAM_BASE: u64 = 0;
+const MALTA_DEFAULT_RAM_SIZE: u64 = 128 * 1024 * 1024;
 
 impl Platform for MaltaPlatform {
 	fn get_short_name(&self) -> &'static str {
@@ -30,9 +48,14 @@ impl Platform for MaltaPlatform {
 		if args.len() < 3 {
 			return Err(MachineError::InvalidArgs);
 		}
-		println!("kernel= {}", args[1]);
-		println!("cmd_line= {}", args[2]);
-		let machine = Box::<MaltaMachine>::new(Default::default());
+
+		let mut system = System::new();
+
+		try!(system.add_mappable_range(PROT_ALL, MALTA_RAM_BASE, MALTA_DEFAULT_RAM_SIZE));
+
+		let cpu = try!(system.register_cpu(CPU_ENDIAN_BIG, Arch::Mips(mips::Arch::R2000)));
+
+		let machine = Box::<MaltaMachine>::new(MaltaMachine::new(system, cpu));
 		Ok(machine)
 	}
 }
@@ -41,7 +64,7 @@ impl Platform for MaltaPlatform {
 struct Sys161Machine;
 
 impl Machine for Sys161Machine {
-	fn run(&self) -> Result<(), MachineError> {
+	fn run(&mut self) -> Result<(), MachineError> {
 		Ok(())
 	}
 }
