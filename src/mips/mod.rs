@@ -23,13 +23,15 @@ impl Platform for MaltaPlatform {
 	}
 
 	fn get_usage(&self) -> &'static str {
-		"KERNEL"
+		"KERNEL KERNEL_CMD_LINE"
 	}
 
 	fn initialize_machine(&self, args: &Vec<String>) -> Result<Box<Machine>, MachineError> {
-		if args.len() != 1 {
+		if args.len() < 3 {
 			return Err(MachineError::InvalidArgs);
 		}
+		println!("kernel= {}", args[1]);
+		println!("cmd_line= {}", args[2]);
 		let machine = Box::<MaltaMachine>::new(Default::default());
 		Ok(machine)
 	}
